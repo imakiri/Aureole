@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"gouth/jwt"
-	"gouth/pwhash"
 	"gouth/storage"
 	"net/http"
 	"strings"
@@ -67,15 +66,7 @@ func initRouter() *gin.Engine {
 
 				// TODO: add a user existence check
 
-				h, err := pwhash.New(app.Hash.AlgName, &app.Hash.RawHashConf)
-				if err != nil {
-					c.AbortWithStatusJSON(
-						http.StatusInternalServerError,
-						gin.H{"error": err.Error()})
-					return
-				}
-
-				pwHash, err := h.HashPw(userConfirm)
+				pwHash, err := app.Hash.HashPw(userConfirm)
 				if err != nil {
 					c.AbortWithStatusJSON(
 						http.StatusInternalServerError,
@@ -154,14 +145,6 @@ func initRouter() *gin.Engine {
 
 				// TODO: add a user existence check
 
-				h, err := pwhash.New(app.Hash.AlgName, &app.Hash.RawHashConf)
-				if err != nil {
-					c.AbortWithStatusJSON(
-						http.StatusInternalServerError,
-						gin.H{"error": err.Error()})
-					return
-				}
-
 				usersStorage := app.StorageByFeature["users"]
 				pw, err := usersStorage.GetUserPassword(*app.Main.UserColl, userUnique)
 				if err != nil {
@@ -171,7 +154,7 @@ func initRouter() *gin.Engine {
 					return
 				}
 
-				isMatch, err := h.ComparePw(userConfirm, pw.(string))
+				isMatch, err := app.Hash.ComparePw(userConfirm, pw.(string))
 				if err != nil {
 					c.AbortWithStatusJSON(
 						http.StatusInternalServerError,
