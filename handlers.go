@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gouth/jwt"
 	"gouth/pwhash"
@@ -182,6 +183,58 @@ func loginHandler(app AppConfig) func(c *gin.Context) {
 				http.StatusUnauthorized,
 				gin.H{"error": "invalid data"})
 			return
+		}
+	}
+}
+
+func restorePasswordHandler(app AppConfig) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var resetData interface{}
+
+		if err := c.BindJSON(&resetData); err != nil {
+			c.AbortWithStatusJSON(
+				http.StatusBadRequest,
+				gin.H{"error": "invalid json"})
+			return
+		}
+
+		resetConf := app.Main.AuthN
+		userUnique, err := GetJSONPath(resetConf.PasswdBased.UserUnique, resetData)
+		if err != nil {
+			c.AbortWithStatusJSON(
+				http.StatusBadRequest,
+				gin.H{"error": "user_unique didn't passed"},
+			)
+			return
+		}
+		if userUnique, ok := userUnique.(string); ok {
+			if strings.TrimSpace(userUnique) == "" {
+				c.AbortWithStatusJSON(
+					http.StatusBadRequest,
+					gin.H{"error": "user_unique can't be blank"},
+				)
+				return
+			}
+		}
+
+		usersStorage := app.StorageByFeature["users"]
+		_, err = usersStorage.GetUserIdByUserUnique(*app.Main.UserColl, userUnique) // lg , err :=
+		fmt.Println()
+		if err != nil {
+			// TODO: inexistence of user > send status 404
+			c.AbortWithStatusJSON(
+				http.StatusNotFound,
+				gin.H{"error": err.Error()})
+			return
+		} else {
+			// TODO: existence in db check > send email & print ID
+			// Add field "hide_user_existance_msg" to the config.go/yaml
+			// Think about "Password Recovery Exploitation"
+			/*
+				func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(http.StatusOK)
+				}
+			*/
 		}
 	}
 }

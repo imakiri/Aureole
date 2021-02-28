@@ -14,6 +14,7 @@ func initRouter() *gin.Engine {
 
 		appR.POST("/register", registerHandler(app))
 		appR.POST("/login", loginHandler(app))
+		appR.POST("/restore", restorePasswordHandler(app))
 	}
 
 	return r

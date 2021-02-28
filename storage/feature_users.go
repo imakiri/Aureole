@@ -28,6 +28,8 @@ type Application interface {
 	// InsertUser inserts user entity in the user collection
 	InsertUser(UserCollConfig, InsertUserData) (JSONCollResult, error)
 
+	GetUserIdByUserUnique(UserCollConfig, interface{}) (JSONCollResult, error)
+
 	GetUserPassword(UserCollConfig, interface{}) (JSONCollResult, error)
 }
 
